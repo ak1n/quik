@@ -42,6 +42,7 @@ import androidx.core.net.toUri
 import com.jakewharton.rxbinding2.view.clicks
 import com.moez.QKSMS.common.QkMediaPlayer
 import dev.octoshrimpy.quik.R
+import dev.octoshrimpy.quik.common.ExternalNavigator
 import dev.octoshrimpy.quik.common.base.QkRealmAdapter
 import dev.octoshrimpy.quik.common.base.QkViewHolder
 import dev.octoshrimpy.quik.common.util.Colors
@@ -66,11 +67,14 @@ import dev.octoshrimpy.quik.feature.extensions.isEmojiOnly
 import dev.octoshrimpy.quik.model.Conversation
 import dev.octoshrimpy.quik.model.Message
 import dev.octoshrimpy.quik.model.Recipient
+import dev.octoshrimpy.quik.repository.ContactRepository
 import dev.octoshrimpy.quik.databinding.MessageListItemInBinding
 import dev.octoshrimpy.quik.databinding.MessageListItemOutBinding
 import dev.octoshrimpy.quik.util.PhoneNumberUtils
 import dev.octoshrimpy.quik.util.Preferences
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
 import io.realm.RealmResults
@@ -83,6 +87,8 @@ class MessagesAdapter @Inject constructor(
     subscriptionManager: SubscriptionManagerCompat,
     private val context: Context,
     private val colors: Colors,
+    private val contactRepo: ContactRepository,
+    private val externalNavigator: ExternalNavigator,
     private val dateFormatter: DateFormatter,
     private val partsAdapterProvider: Provider<PartsAdapter>,
     private val phoneNumberUtils: PhoneNumberUtils,
@@ -291,6 +297,19 @@ class MessagesAdapter @Inject constructor(
             binding.avatar.apply {
                 setRecipient(contactCache[message.address])
                 setVisible(!canGroup(message, next), View.INVISIBLE)
+                // Tap a sender's avatar to open their contact, or to add them if they aren't one.
+                // Ask the system contacts provider at tap time rather than using the cached
+                // recipient: QUIK only links new contacts to recipients on its next contact sync,
+                // so a contact saved from here would otherwise still be offered as "add".
+                setOnClickListener {
+                    contactRepo.findContactUri(message.address)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                            { uri -> externalNavigator.showContact(uri) },
+                            { externalNavigator.addContact(message.address) }
+                        )
+                }
             }
 
             body.apply {

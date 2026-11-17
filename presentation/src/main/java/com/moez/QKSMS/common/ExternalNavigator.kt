@@ -147,6 +147,10 @@ class ExternalNavigator @Inject constructor(
         startActivityExternal(intent)
     }
 
+    fun showContact(contactUri: Uri) {
+        startActivityExternal(Intent(Intent.ACTION_VIEW).setData(contactUri))
+    }
+
     // This must use startActivityForResult
     fun showDefaultSmsDialog(context: Activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
