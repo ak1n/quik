@@ -63,6 +63,8 @@ interface ConversationRepository {
 
     fun getRecipient(recipientId: Long): Recipient?
 
+    fun getRecipientsAsync(recipientIds: LongArray): RealmResults<Recipient>
+
     fun getOrCreateConversation(threadId: Long, sendAsGroup: Boolean = true): Conversation?
 
     fun createConversation(threadId: Long, sendAsGroup: Boolean = true): Conversation?

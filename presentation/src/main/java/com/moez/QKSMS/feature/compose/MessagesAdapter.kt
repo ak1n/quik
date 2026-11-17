@@ -116,10 +116,13 @@ class MessagesAdapter @Inject constructor(
         set(value) {
             if (field === value) return
 
+            val sameMessages = field?.second === value?.second
             field = value
             contactCache.clear()
 
-            updateData(value?.second)
+            // Same messages but a new conversation snapshot (e.g. a contact was linked to a
+            // recipient): updateData() would ignore it, so rebind to show the new names
+            if (sameMessages) notifyDataSetChanged() else updateData(value?.second)
         }
 
     /**

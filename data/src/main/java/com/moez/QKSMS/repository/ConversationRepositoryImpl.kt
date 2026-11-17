@@ -317,6 +317,12 @@ class ConversationRepositoryImpl @Inject constructor(
             .equalTo("id", recipientId)
             .findFirst()
 
+    override fun getRecipientsAsync(recipientIds: LongArray): RealmResults<Recipient> =
+        Realm.getDefaultInstance()
+            .where(Recipient::class.java)
+            .anyOf("id", recipientIds)
+            .findAllAsync()
+
     override fun createConversation(threadId: Long, sendAsGroup: Boolean) =
         createConversationFromCp(threadId, sendAsGroup)
 

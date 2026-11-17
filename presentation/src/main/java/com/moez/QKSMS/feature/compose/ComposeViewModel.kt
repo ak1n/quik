@@ -237,6 +237,37 @@ class ComposeViewModel @Inject constructor(
                 .switchMap { messages -> messages.asObservable() }
                 .subscribe(messages::onNext)
 
+        // The conversation emitted above is a frozen snapshot, and contact sync links new contacts
+        // by updating its recipients in place, which doesn't reach it. Watch the live recipients
+        // and, when they change, re-render the title and messages from the newer snapshot
+        disposables += conversation
+                .distinctUntilChanged { conversation -> conversation.id }
+                .switchMap { conversation ->
+                    val recipientIds = conversation.recipients.map { recipient -> recipient.id }.toLongArray()
+                    if (recipientIds.isEmpty()) return@switchMap Observable.empty<Conversation>()
+
+                    conversationRepo.getRecipientsAsync(recipientIds)
+                        .asFlowable()
+                        .toObservable()
+                        .filter { recipients -> recipients.isLoaded && recipients.isValid }
+                        .skip(1) // the first emission is the current state
+                        .mapNotNull { recipients ->
+                            recipients.realm.where(Conversation::class.java)
+                                .equalTo("id", conversation.id)
+                                .findFirst()
+                                ?.takeIf { it.isValid }
+                        }
+                }
+                .withLatestFrom(state) { conversation, state -> conversation to state.messages }
+                .subscribe({ (conversation, messages) ->
+                    newState {
+                        copy(
+                            conversationtitle = conversation.getTitle(),
+                            messages = messages?.let { Pair(conversation, it.second) }
+                        )
+                    }
+                }, { e -> Timber.w(e, "Couldn't refresh recipient names") })
+
         disposables += conversation
                 .map { conversation -> conversation.getTitle() }
                 .distinctUntilChanged()
