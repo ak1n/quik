@@ -36,4 +36,24 @@ class QkActivityResultContracts {
         }
     }
 
+    data class CreateDocumentParams(
+        val mimeType: String,
+        val suggestedName: String
+    )
+
+    class CreateDocument : ActivityResultContract<CreateDocumentParams, Uri>() {
+        override fun createIntent(context: Context, input: CreateDocumentParams): Intent {
+            return Intent(Intent.ACTION_CREATE_DOCUMENT)
+                    .addCategory(Intent.CATEGORY_OPENABLE)
+                    .setType(input.mimeType)
+                    .putExtra(Intent.EXTRA_TITLE, input.suggestedName)
+        }
+
+        override fun parseResult(resultCode: Int, intent: Intent?): Uri {
+            if (resultCode != Activity.RESULT_OK)
+                return Uri.EMPTY
+            return intent?.data ?: Uri.EMPTY
+        }
+    }
+
 }

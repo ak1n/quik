@@ -361,6 +361,17 @@
     <string name="blocked_numbers_dialog_title">Block texts from</string>
     <string name="blocked_numbers_dialog_hint">Phone number</string>
     <string name="blocked_numbers_dialog_block">Block</string>
+    <string name="blocked_numbers_export">Export</string>
+    <string name="blocked_numbers_import">Import</string>
+    <string name="blocked_numbers_export_empty">No blocked numbers to export</string>
+    <string name="blocked_numbers_export_done">Blocked numbers exported</string>
+    <string name="blocked_numbers_import_empty">No phone numbers found in that file</string>
+    <string name="blocked_numbers_import_none_new">All of those numbers were already blocked</string>
+    <plurals name="blocked_numbers_import_done">
+        <item quantity="one">Blocked %d new number</item>
+        <item quantity="other">Blocked %d new numbers</item>
+    </plurals>
+    <string name="blocked_numbers_file_error">Couldn\'t read or write that file</string>
 
     <string name="message_content_filters_title">Message content filters</string>
     <string name="message_content_filters_empty">Your message content filters will appear here</string>

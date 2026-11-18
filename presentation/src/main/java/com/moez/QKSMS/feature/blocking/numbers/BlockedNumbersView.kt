@@ -19,6 +19,7 @@
 package dev.octoshrimpy.quik.feature.blocking.numbers
 
 import dev.octoshrimpy.quik.common.base.QkViewContract
+import android.net.Uri
 import io.reactivex.Observable
 
 interface BlockedNumbersView : QkViewContract<BlockedNumbersState> {
@@ -26,7 +27,12 @@ interface BlockedNumbersView : QkViewContract<BlockedNumbersState> {
     fun unblockAddress(): Observable<Long>
     fun addAddress(): Observable<*>
     fun saveAddress(): Observable<String>
+    fun optionsItemSelected(): Observable<Int>
+    fun exportFileSelected(): Observable<Uri>
+    fun importFileSelected(): Observable<Uri>
 
     fun showAddDialog()
+    fun selectExportFile(suggestedName: String)
+    fun selectImportFile()
 
 }

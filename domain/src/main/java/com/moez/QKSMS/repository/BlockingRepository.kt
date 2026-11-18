@@ -29,6 +29,11 @@ interface BlockingRepository {
 
     fun getBlockedNumber(id: Long): BlockedNumber?
 
+    /**
+     * Snapshot of every blocked address, safe to call from a background thread
+     */
+    fun getBlockedAddresses(): List<String>
+
     fun isBlocked(address: String): Boolean
 
     fun unblockNumber(id: Long)
