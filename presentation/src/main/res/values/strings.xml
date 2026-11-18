@@ -225,6 +225,7 @@
     <string name="backup_select_location_rationale_title">Select backup location</string>
     <string name="backup_select_location_rationale_message">Please select a folder to save your backups to</string>
     <string name="backup_details">%1$s\n%2$d messages</string>
+    <string name="backup_details_blocked_numbers">%1$s\n%2$d messages, %3$d blocked numbers</string>
     <string name="backup_selected_backup_error_title">Error</string>
     <string name="backup_selected_backup_error_message">Couldn\'t read backup file</string>
     <string name="backup_selected_backup_details_title">Backup details</string>

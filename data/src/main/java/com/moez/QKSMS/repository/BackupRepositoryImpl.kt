@@ -30,6 +30,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.squareup.moshi.Moshi
 import dev.octoshrimpy.quik.common.util.extensions.now
 import dev.octoshrimpy.quik.model.BackupFile
+import dev.octoshrimpy.quik.model.BlockedNumber
 import dev.octoshrimpy.quik.model.Message
 import dev.octoshrimpy.quik.util.Preferences
 import io.reactivex.Observable
@@ -51,12 +52,15 @@ class BackupRepositoryImpl @Inject constructor(
     private val context: Context,
     private val moshi: Moshi,
     private val prefs: Preferences,
-    private val syncRepo: SyncRepository
+    private val syncRepo: SyncRepository,
+    private val blockingRepo: BlockingRepository,
+    private val conversationRepo: ConversationRepository
 ) : BackupRepository {
 
     data class Backup(
         val messageCount: Int = 0,
-        val messages: List<BackupMessage> = listOf()
+        val messages: List<BackupMessage> = listOf(),
+        val blockedNumbers: List<String> = listOf()
     )
 
     /**
@@ -64,7 +68,8 @@ class BackupRepositoryImpl @Inject constructor(
      * needing to parse the entire file
      */
     data class BackupMetadata(
-        val messageCount: Int = 0
+        val messageCount: Int = 0,
+        val blockedNumbers: List<String> = listOf()
     )
 
     data class BackupMessage(
@@ -133,12 +138,18 @@ class BackupRepositoryImpl @Inject constructor(
             }
         }
 
+        // Blocked numbers are only stored in QUIK's database, so save them with the messages
+        val blockedNumbers = Realm.getDefaultInstance().use { realm ->
+            realm.refresh()
+            realm.where(BlockedNumber::class.java).findAll().map { number -> number.address }
+        }
+
         // Update the status, and set the progress to be indeterminate since we can no longer calculate progress
         backupProgress.onNext(BackupRepository.Progress.Saving())
 
         // Convert the data to json
         val adapter = moshi.adapter(Backup::class.java).indent("\t")
-        val json = adapter.toJson(Backup(messageCount, backupMessages)).toByteArray()
+        val json = adapter.toJson(Backup(messageCount, backupMessages, blockedNumbers)).toByteArray()
 
         try {
             val timestamp = SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault()).format(now())
@@ -188,7 +199,7 @@ class BackupRepositoryImpl @Inject constructor(
                 ?.use(adapter::fromJson)
                 ?: throw IllegalArgumentException("Couldn't parse backup file")
 
-        return BackupFile(file.lastModified(), metadata.messageCount)
+        return BackupFile(file.lastModified(), metadata.messageCount, metadata.blockedNumbers.size)
     }
 
     override fun performRestore(uri: Uri) {
@@ -250,6 +261,16 @@ class BackupRepositoryImpl @Inject constructor(
         // Sync the messages
         restoreProgress.onNext(BackupRepository.Progress.Syncing())
         syncRepo.syncMessages()
+
+        // Restore blocked numbers, and move the conversations with them back to blocked
+        backup?.blockedNumbers?.takeIf { numbers -> numbers.isNotEmpty() }?.let { numbers ->
+            blockingRepo.blockNumber(*numbers.toTypedArray())
+
+            val threadIds = numbers.mapNotNull { number -> conversationRepo.getConversation(listOf(number))?.id }
+            if (threadIds.isNotEmpty()) {
+                conversationRepo.markBlocked(threadIds, Preferences.BLOCKING_MANAGER_QKSMS, null)
+            }
+        }
 
         // Mark the task finished, and set it as Idle a second later
         restoreProgress.onNext(BackupRepository.Progress.Finished())
