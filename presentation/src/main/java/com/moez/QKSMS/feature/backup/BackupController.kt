@@ -25,6 +25,8 @@ import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.FrameLayout
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -34,6 +36,7 @@ import com.jakewharton.rxbinding2.view.clicks
 import dev.octoshrimpy.quik.R
 import dev.octoshrimpy.quik.common.base.QkController
 import dev.octoshrimpy.quik.common.util.QkActivityResultContracts
+import dev.octoshrimpy.quik.common.util.extensions.dpToPx
 import dev.octoshrimpy.quik.common.util.extensions.getLabel
 import dev.octoshrimpy.quik.common.util.extensions.setBackgroundTint
 import dev.octoshrimpy.quik.common.util.extensions.setNegativeButton
@@ -96,9 +99,22 @@ class BackupController : QkController<BackupControllerBinding, BackupView, Backu
                 .create()
     }
 
+    private val restoreSettingsCheckBox by lazy {
+        CheckBox(activity!!).apply { setText(R.string.backup_restore_settings) }
+    }
+
+    private var shownBackupDetails: String? = null
+
     private val selectedBackupDetailsDialog by lazy {
+        val checkBoxContainer = FrameLayout(activity!!).apply {
+            val horizontal = 20.dpToPx(context)
+            setPadding(horizontal, 0, horizontal, 0)
+            addView(restoreSettingsCheckBox)
+        }
+
         AlertDialog.Builder(activity!!)
                 .setTitle(R.string.backup_selected_backup_details_title)
+                .setView(checkBoxContainer)
                 .setPositiveButton(R.string.backup_restore_title, confirmRestoreConfirmSubject)
                 .setNegativeButton(R.string.button_cancel, confirmRestoreCancelSubject)
                 .setCancelable(false)
@@ -198,6 +214,13 @@ class BackupController : QkController<BackupControllerBinding, BackupView, Backu
         selectedBackupErrorDialog.setShowing(state.showSelectedBackupError)
 
         selectedBackupDetailsDialog.setMessage(state.selectedBackupDetails)
+        if (state.selectedBackupDetails != shownBackupDetails) {
+            // A newly selected backup: start with settings unticked, so a restore never
+            // replaces the current settings unless asked to
+            shownBackupDetails = state.selectedBackupDetails
+            restoreSettingsCheckBox.isChecked = false
+        }
+        restoreSettingsCheckBox.isVisible = state.selectedBackupHasSettings
         selectedBackupDetailsDialog.setShowing(state.selectedBackupDetails != null)
 
         stopRestoreDialog.setShowing(state.showStopRestoreDialog)
@@ -213,7 +236,8 @@ class BackupController : QkController<BackupControllerBinding, BackupView, Backu
 
     override fun selectedBackupErrorClicks(): Observable<*> = restoreErrorConfirmSubject
 
-    override fun confirmRestoreBackupConfirmClicks(): Observable<*> = confirmRestoreConfirmSubject
+    override fun confirmRestoreBackupConfirmClicks(): Observable<Boolean> = confirmRestoreConfirmSubject
+            .map { restoreSettingsCheckBox.isVisible && restoreSettingsCheckBox.isChecked }
 
     override fun confirmRestoreBackupCancelClicks(): Observable<*> = confirmRestoreCancelSubject
 

@@ -31,6 +31,7 @@ interface BackupRepository {
         class Running(val max: Int, val count: Int) : Progress(true, false)
         class Saving : Progress(true)
         class Syncing : Progress(true)
+        class RestoringSettings : Progress(true)
         class Finished : Progress(true, false)
     }
 
@@ -48,7 +49,12 @@ interface BackupRepository {
 
     fun parseBackup(uri: Uri): BackupFile
 
-    fun performRestore(uri: Uri)
+    /**
+     * Restores the messages, blocked numbers, conversation details, content filters and
+     * scheduled messages from the backup. With [restoreSettings], QUIK's settings in the
+     * backup also replace the current ones.
+     */
+    fun performRestore(uri: Uri, restoreSettings: Boolean)
 
     fun getRestoreProgress(): Observable<Progress>
 

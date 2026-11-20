@@ -25,11 +25,13 @@ import javax.inject.Inject
 
 class PerformRestore @Inject constructor(
     private val backupRepo: BackupRepository
-) : Interactor<Uri>() {
+) : Interactor<PerformRestore.Params>() {
 
-    override fun buildObservable(params: Uri): Flowable<*> {
+    data class Params(val uri: Uri, val restoreSettings: Boolean = false)
+
+    override fun buildObservable(params: Params): Flowable<*> {
         return Flowable.just(params)
-                .doOnNext(backupRepo::performRestore)
+                .doOnNext { backupRepo.performRestore(it.uri, it.restoreSettings) }
     }
 
 }

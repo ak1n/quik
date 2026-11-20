@@ -104,9 +104,9 @@ class BackupPresenter @Inject constructor(
 
         view.confirmRestoreBackupConfirmClicks()
             .doOnNext { newState { copy(selectedBackupDetails = null) } }
-            .withLatestFrom(view.documentSelected()) { _, backup -> backup }
+            .withLatestFrom(view.documentSelected()) { restoreSettings, backup -> backup to restoreSettings }
             .autoDisposable(view.scope())
-            .subscribe { backup -> RestoreBackupService.start(context, backup) }
+            .subscribe { (backup, restoreSettings) -> RestoreBackupService.start(context, backup, restoreSettings) }
 
         view.confirmRestoreBackupCancelClicks()
             .doOnNext { newState { copy(selectedBackupDetails = null) } }
@@ -137,12 +137,22 @@ class BackupPresenter @Inject constructor(
                 try {
                     val backupFile = backupRepo.parseBackup(uri)
                     val date = dateFormatter.getDetailedTimestamp(backupFile.date)
-                    val details = when (backupFile.blockedNumbers) {
-                        0 -> context.getString(R.string.backup_details, date, backupFile.messages)
-                        else -> context.getString(R.string.backup_details_blocked_numbers, date,
-                            backupFile.messages, backupFile.blockedNumbers)
+                    val details = listOfNotNull(
+                        context.getString(R.string.backup_details, date, backupFile.messages),
+                        backupFile.blockedNumbers.takeIf { it > 0 }
+                            ?.let { context.getString(R.string.backup_details_blocked_numbers, it) },
+                        backupFile.conversations.takeIf { it > 0 }
+                            ?.let { context.getString(R.string.backup_details_conversations, it) },
+                        backupFile.contentFilters.takeIf { it > 0 }
+                            ?.let { context.getString(R.string.backup_details_content_filters, it) },
+                        backupFile.scheduledMessages.takeIf { it > 0 }
+                            ?.let { context.getString(R.string.backup_details_scheduled_messages, it) },
+                        backupFile.settings.takeIf { it > 0 }
+                            ?.let { context.getString(R.string.backup_details_settings, it) },
+                    ).joinToString("\n")
+                    newState {
+                        copy(selectedBackupDetails = details, selectedBackupHasSettings = backupFile.settings > 0)
                     }
-                    newState { copy(selectedBackupDetails = details) }
                 } catch (e: Exception) {
                     newState { copy(showSelectedBackupError = true) }
                 }

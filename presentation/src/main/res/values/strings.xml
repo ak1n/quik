@@ -225,7 +225,12 @@
     <string name="backup_select_location_rationale_title">Select backup location</string>
     <string name="backup_select_location_rationale_message">Please select a folder to save your backups to</string>
     <string name="backup_details">%1$s\n%2$d messages</string>
-    <string name="backup_details_blocked_numbers">%1$s\n%2$d messages, %3$d blocked numbers</string>
+    <string name="backup_details_blocked_numbers">%d blocked numbers</string>
+    <string name="backup_details_conversations">%d conversations with a name, pin, archive, draft or block</string>
+    <string name="backup_details_content_filters">%d message content filters</string>
+    <string name="backup_details_scheduled_messages">%d scheduled messages</string>
+    <string name="backup_details_settings">%d settings</string>
+    <string name="backup_restore_settings">Also restore settings (replaces the current ones)</string>
     <string name="backup_selected_backup_error_title">Error</string>
     <string name="backup_selected_backup_error_message">Couldn\'t read backup file</string>
     <string name="backup_selected_backup_details_title">Backup details</string>
@@ -238,6 +243,7 @@
     <string name="backup_progress_running">%d/%d messages</string>
     <string name="backup_progress_saving">Saving backup…</string>
     <string name="backup_progress_syncing">Syncing messages…</string>
+    <string name="backup_progress_settings">Restoring settings…</string>
     <string name="backup_progress_finished">Finished!</string>
     <string name="backup_notification_channel_name">Backup and restore</string>
 

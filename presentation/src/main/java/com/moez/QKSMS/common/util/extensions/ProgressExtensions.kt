@@ -28,6 +28,7 @@ fun BackupRepository.Progress.getLabel(context: Context): String? {
         is BackupRepository.Progress.Running -> context.getString(R.string.backup_progress_running, count, max)
         is BackupRepository.Progress.Saving -> context.getString(R.string.backup_progress_saving)
         is BackupRepository.Progress.Syncing -> context.getString(R.string.backup_progress_syncing)
+        is BackupRepository.Progress.RestoringSettings -> context.getString(R.string.backup_progress_settings)
         is BackupRepository.Progress.Finished -> context.getString(R.string.backup_progress_finished)
         else -> null
     }

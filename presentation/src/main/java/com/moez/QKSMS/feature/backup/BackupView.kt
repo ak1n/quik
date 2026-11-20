@@ -33,7 +33,8 @@ interface BackupView : QkViewContract<BackupState> {
 
     fun selectedBackupErrorClicks(): Observable<*>
 
-    fun confirmRestoreBackupConfirmClicks(): Observable<*>
+    /** Emits whether the user also wants the settings from the backup */
+    fun confirmRestoreBackupConfirmClicks(): Observable<Boolean>
     fun confirmRestoreBackupCancelClicks(): Observable<*>
 
     fun stopRestoreClicks(): Observable<*>
