@@ -164,7 +164,8 @@ class ReceiveMmsWorker(appContext: Context, workerParams: WorkerParameters)
                     // to check if it should be blocked after we've pulled it into realm. If it
                     // turns out that it should be dropped, then delete it
                     // TODO Don't store blocked messages in the first place
-                    val action = blockingClient.shouldBlock(message.address).blockingGet()
+                    val action = blockingClient.shouldBlock(message.address, message.getText(false), message.subId)
+                        .blockingGet()
                     val shouldDrop = prefs.drop.get()
                     Timber.v("block=$action, drop=$shouldDrop")
 

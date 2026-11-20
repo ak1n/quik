@@ -15,7 +15,8 @@ class BlockingManager @Inject constructor(
     private val callBlockerBlockingClient: CallBlockerBlockingClient,
     private val callControlBlockingClient: CallControlBlockingClient,
     private val qksmsBlockingClient: QksmsBlockingClient,
-    private val shouldIAnswerBlockingClient: ShouldIAnswerBlockingClient
+    private val shouldIAnswerBlockingClient: ShouldIAnswerBlockingClient,
+    private val spamBlockerBlockingClient: SpamBlockerBlockingClient
 ) : BlockingClient {
 
     private val client: BlockingClient
@@ -23,6 +24,7 @@ class BlockingManager @Inject constructor(
             Preferences.BLOCKING_MANAGER_CB -> callBlockerBlockingClient
             Preferences.BLOCKING_MANAGER_SIA -> shouldIAnswerBlockingClient
             Preferences.BLOCKING_MANAGER_CC -> callControlBlockingClient
+            Preferences.BLOCKING_MANAGER_SB -> spamBlockerBlockingClient
             else -> qksmsBlockingClient
         }
 
@@ -31,6 +33,9 @@ class BlockingManager @Inject constructor(
     override fun getClientCapability(): BlockingClient.Capability = client.getClientCapability()
 
     override fun shouldBlock(address: String): Single<BlockingClient.Action> = client.shouldBlock(address)
+
+    override fun shouldBlock(address: String, body: String, subId: Int): Single<BlockingClient.Action> =
+            client.shouldBlock(address, body, subId)
 
     override fun isBlacklisted(address: String): Single<BlockingClient.Action> = client.isBlacklisted(address)
 

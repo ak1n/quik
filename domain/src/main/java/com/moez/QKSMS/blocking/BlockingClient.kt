@@ -63,6 +63,12 @@ interface BlockingClient {
     fun shouldBlock(address: String): Single<Action>
 
     /**
+     * Like [shouldBlock], for a message whose text and SIM are known. Clients that screen by content
+     * (SpamBlocker) override this; the default only looks at the address
+     */
+    fun shouldBlock(address: String, body: String, subId: Int): Single<Action> = shouldBlock(address)
+
+    /**
      * Returns whether or not the [address] is in the blocking manager's blacklist
      * In most cases this will return the same result as [shouldBlock], but it's possible for an app's blacklist
      * to be temporarily deactivated, in which case the results will differ

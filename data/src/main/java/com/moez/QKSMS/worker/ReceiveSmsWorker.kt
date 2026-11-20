@@ -61,7 +61,7 @@ class ReceiveSmsWorker(appContext: Context, workerParams: WorkerParameters)
 
         val message = messageRepo.getMessage(messageId) ?: return Result.failure(inputData)
 
-        val action = blockingClient.shouldBlock(message.address).blockingGet()
+        val action = blockingClient.shouldBlock(message.address, message.getText(false), message.subId).blockingGet()
 
         when {
             ((action is BlockingClient.Action.Block) && prefs.drop.get()) -> {

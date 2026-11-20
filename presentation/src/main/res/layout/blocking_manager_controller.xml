@@ -58,6 +58,15 @@
             app:widget="@layout/blocking_manager_list_option" />
 
         <dev.octoshrimpy.quik.feature.blocking.manager.BlockingManagerPreferenceView
+            android:id="@+id/spamBlocker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/ic_blocking_manager_spamblocker"
+            app:summary="@string/blocking_manager_spamblocker_summary"
+            app:title="@string/blocking_manager_spamblocker_title"
+            app:widget="@layout/blocking_manager_list_option" />
+
+        <dev.octoshrimpy.quik.feature.blocking.manager.BlockingManagerPreferenceView
             android:id="@+id/shouldIAnswer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

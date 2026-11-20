@@ -86,6 +86,9 @@ class ExternalNavigator @Inject constructor(
             "https://play.google.com/store/apps/details?id=com.flexaspect.android.everycallcontrol"
         )
 
+    fun openSpamBlockerPage() =
+        openExternalActivity("https://github.com/aj3423/SpamBlocker")
+
     fun openAppStoreForSia() =
         openExternalActivity(
             "https://play.google.com/store/apps/details?id=org.mistergroup.shouldianswer"
