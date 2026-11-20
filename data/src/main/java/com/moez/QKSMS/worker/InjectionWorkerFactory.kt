@@ -29,6 +29,7 @@ import dev.octoshrimpy.quik.manager.ActiveConversationManager
 import dev.octoshrimpy.quik.manager.NotificationManager
 import dev.octoshrimpy.quik.manager.ShortcutManager
 import dev.octoshrimpy.quik.repository.ContactRepository
+import dev.octoshrimpy.quik.repository.EmojiReactionRepository
 import dev.octoshrimpy.quik.repository.ConversationRepository
 import dev.octoshrimpy.quik.repository.MessageContentFilterRepository
 import dev.octoshrimpy.quik.repository.MessageRepository
@@ -50,7 +51,7 @@ class InjectionWorkerFactory @Inject constructor(
     private val syncRepo: SyncRepository,
     private val filterRepo: MessageContentFilterRepository,
     private val contactRepo: ContactRepository,
-
+    private val reactions: EmojiReactionRepository,
 ) : WorkerFactory() {
     override fun createWorker(
         appContext: Context,
@@ -76,6 +77,7 @@ class InjectionWorkerFactory @Inject constructor(
                 instance.updateBadge =  updateBadge
                 instance.filterRepo = filterRepo
                 instance.contactsRepo = contactRepo
+                instance.reactions = reactions
             }
             is ReceiveMmsWorker -> {
                 instance.syncRepo = syncRepo
@@ -89,6 +91,7 @@ class InjectionWorkerFactory @Inject constructor(
                 instance.updateBadge = updateBadge
                 instance.filterRepo = filterRepo
                 instance.contactsRepo = contactRepo
+                instance.reactions = reactions
             }
         }
 

@@ -25,4 +25,7 @@ data class EmojiPatternStrings(
 
     @Json(name = "emoji_reaction_ios_question_mark_added") val iosQuestionMarkAdded: String? = null,
     @Json(name = "emoji_reaction_ios_question_mark_removed") val iosQuestionMarkRemoved: String? = null,
+
+    /** Reactions to a non-text message ("Loved an image"): recognised, but there is nothing to attach them to */
+    @Json(name = "emoji_reaction_ios_attachment") val iosAttachment: String? = null,
 )

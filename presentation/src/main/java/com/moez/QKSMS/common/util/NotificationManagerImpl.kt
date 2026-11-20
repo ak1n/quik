@@ -53,6 +53,7 @@ import dev.octoshrimpy.quik.receiver.RemoteMessagingReceiver
 import dev.octoshrimpy.quik.receiver.SpeakThreadsReceiver
 import dev.octoshrimpy.quik.repository.ContactRepository
 import dev.octoshrimpy.quik.repository.ConversationRepository
+import dev.octoshrimpy.quik.repository.EmojiReactionRepository
 import dev.octoshrimpy.quik.repository.MessageRepository
 import dev.octoshrimpy.quik.util.GlideApp
 import dev.octoshrimpy.quik.util.PhoneNumberUtils
@@ -74,7 +75,8 @@ class NotificationManagerImpl @Inject constructor(
     private val permissions: PermissionManager,
     private val phoneNumberUtils: PhoneNumberUtils,
     private val contactRepo: ContactRepository,
-    private val shortcutManager: ShortcutManager
+    private val shortcutManager: ShortcutManager,
+    private val reactions: EmojiReactionRepository
 ) : dev.octoshrimpy.quik.manager.NotificationManager {
 
     companion object {
@@ -139,7 +141,13 @@ class NotificationManagerImpl @Inject constructor(
             return
         }
 
-        val messages = messageRepo.getUnreadUnseenMessages(threadId)
+        // Leave out reactions if reaction notifications are off, so they don't appear alongside the next
+        // message. Go by the text as well as the flag: the flag is only set when the reacted-to message
+        // was found
+        val notifyReactions = prefs.notifyReactions.get()
+        val messages = messageRepo.getUnreadUnseenMessages(threadId).filter { message ->
+            notifyReactions || !(message.isEmojiReaction || reactions.isEmojiReactionText(message.getText(false)))
+        }
 
         // If there are no messages to be displayed, make sure that the notification is dismissed
         if (messages.isEmpty()) {

@@ -27,6 +27,7 @@ import dev.octoshrimpy.quik.interactor.UpdateBadge
 import dev.octoshrimpy.quik.manager.NotificationManager
 import dev.octoshrimpy.quik.manager.ShortcutManager
 import dev.octoshrimpy.quik.repository.ContactRepository
+import dev.octoshrimpy.quik.repository.EmojiReactionRepository
 import dev.octoshrimpy.quik.repository.ConversationRepository
 import dev.octoshrimpy.quik.repository.MessageContentFilterRepository
 import dev.octoshrimpy.quik.repository.MessageRepository
@@ -49,8 +50,19 @@ class ReceiveSmsWorker(appContext: Context, workerParams: WorkerParameters)
     @Inject lateinit var shortcutManager: ShortcutManager
     @Inject lateinit var filterRepo: MessageContentFilterRepository
     @Inject lateinit var contactsRepo: ContactRepository
+    @Inject lateinit var reactions: EmojiReactionRepository
 
     override fun doWork(): Result {
+        // WorkManager only reports an exception to logcat; log it here too so it shows in QUIK's own log
+        return try {
+            receive()
+        } catch (e: Exception) {
+            Timber.e(e, "receive failed")
+            throw e
+        }
+    }
+
+    private fun receive(): Result {
         Timber.v("started")
 
         val messageId = inputData.getLong(INPUT_DATA_KEY_MESSAGE_ID, -1)
@@ -113,9 +125,17 @@ class ReceiveSmsWorker(appContext: Context, workerParams: WorkerParameters)
             conversationRepo.markUnarchived(listOf(conversation.id))
         }
 
-        // update/create notification
-        Timber.v("update/create notification")
-        notificationManager.update(conversation.id)
+        // update/create notification, unless it's a reaction and reaction notifications are off.
+        // the reaction still shows on the message it reacts to. isEmojiReaction is only set when
+        // the reacted-to message was found, so also go by the text: that covers reactions to
+        // attachments, removed reactions and reactions whose target we couldn't match
+        val isReaction = message.isEmojiReaction || reactions.isEmojiReactionText(message.getText(false))
+        if (isReaction && !prefs.notifyReactions.get()) {
+            Timber.v("no notification for reaction")
+        } else {
+            Timber.v("update/create notification")
+            notificationManager.update(conversation.id)
+        }
 
         // update shortcuts
         Timber.v("update shortcuts")

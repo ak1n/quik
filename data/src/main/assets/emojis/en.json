@@ -18,5 +18,7 @@
   "emoji_reaction_ios_exclamation_removed": "^(?s)Removed an exclamation from “(.+?)”$",
 
   "emoji_reaction_ios_question_mark_added": "^(?s)Questioned “(.+?)”$",
-  "emoji_reaction_ios_question_mark_removed": "^(?s)Removed a question mark from “(.+?)”$"
+  "emoji_reaction_ios_question_mark_removed": "^(?s)Removed a question mark from “(.+?)”$",
+
+  "emoji_reaction_ios_attachment": "^(?s)(Reacted .+? to|Loved|Liked|Disliked|Laughed at|Emphasized|Questioned) (an image|a photo|a video|a movie|an attachment|a sticker|a GIF|an audio message|a voice message|a location|a link|a contact)$"
 }

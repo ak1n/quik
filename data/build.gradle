@@ -71,6 +71,7 @@ dependencies {
     testImplementation "androidx.test:runner:$androidx_testrunner_version"
     testImplementation "junit:junit:$junit_version"
     testImplementation "org.mockito:mockito-core:$mockito_version"
+    testImplementation "com.squareup.moshi:moshi-kotlin:$moshi_version"
 
     // coroutines
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"

@@ -26,6 +26,12 @@ data class ParsedEmojiReaction(val emoji: String, val originalMessage: String, v
 interface EmojiReactionRepository {
     fun parseEmojiReaction(body: String): ParsedEmojiReaction?
 
+    /**
+     * Whether the text is a reaction of any kind, including removals and reactions to attachments,
+     * which [parseEmojiReaction] can't turn into a reaction. Used to decide what gets a notification
+     */
+    fun isEmojiReactionText(body: String): Boolean
+
     fun findTargetMessage(
         threadId: Long,
         originalMessageText: String,

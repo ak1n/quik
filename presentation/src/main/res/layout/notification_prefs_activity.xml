@@ -88,6 +88,14 @@
                 app:widget="@layout/settings_switch_widget" />
 
             <dev.octoshrimpy.quik.common.widget.PreferenceView
+                android:id="@+id/notifyReactions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:title="@string/settings_notification_reactions_title"
+                app:summary="@string/settings_notification_reactions_summary"
+                app:widget="@layout/settings_switch_widget" />
+
+            <dev.octoshrimpy.quik.common.widget.PreferenceView
                 android:id="@+id/vibration"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
