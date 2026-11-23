@@ -269,6 +269,10 @@
         <package android:name="org.mistergroup.shouldianswer" />
         <package android:name="org.mistergroup.shouldianswerpersonal" />
         <intent>
+            <action android:name="android.intent.action.INSERT_OR_EDIT" />
+            <data android:mimeType="vnd.android.cursor.item/contact" />
+        </intent>
+        <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
         <intent>

@@ -132,12 +132,27 @@ class ExternalNavigator @Inject constructor(
         startActivity(intent)
     }
 
+    /**
+     * Saves [address] to the user's contacts. Uses ACTION_INSERT_OR_EDIT, which the contacts app
+     * shows as a list of existing contacts with "Create new contact" at the top, so the number
+     * can be added to someone who is already a contact instead of always making a new one.
+     * Falls back to the plain "new contact" form for a contacts app that doesn't handle it.
+     */
     fun addContact(address: String) {
-        val intent = Intent(Intent.ACTION_INSERT)
+        val insertOrEdit = Intent(Intent.ACTION_INSERT_OR_EDIT)
+            .setType(ContactsContract.Contacts.CONTENT_ITEM_TYPE)
+            .putExtra(ContactsContract.Intents.Insert.PHONE, address)
+
+        if (insertOrEdit.resolveActivity(context.packageManager) != null) {
+            startActivity(insertOrEdit)
+            return
+        }
+
+        val insert = Intent(Intent.ACTION_INSERT)
             .setType(ContactsContract.Contacts.CONTENT_TYPE)
             .putExtra(ContactsContract.Intents.Insert.PHONE, address)
 
-        startActivityExternal(intent)
+        startActivityExternal(insert)
     }
 
     fun showContact(lookupKey: String) {
