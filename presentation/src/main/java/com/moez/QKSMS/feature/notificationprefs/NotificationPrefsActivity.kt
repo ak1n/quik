@@ -73,8 +73,10 @@ class NotificationPrefsActivity : QkThemedActivity(), NotificationPrefsView {
 
         val hasOreo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
 
+        // QUIK's own switch is shown on every version, so a conversation can be muted without leaving
+        // QUIK, and the mute also stops QK Reply and the screen wake. On Android 8+ sound, vibration
+        // and the rest live in Android's channel settings, which the second row opens
         binding.notificationsO.setVisible(hasOreo)
-        binding.notifications.setVisible(!hasOreo)
         binding.vibration.setVisible(!hasOreo)
         binding.ringtone.setVisible(!hasOreo)
 

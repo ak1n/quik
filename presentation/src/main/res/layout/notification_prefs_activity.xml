@@ -51,19 +51,19 @@
             android:paddingBottom="8dp">
 
             <dev.octoshrimpy.quik.common.widget.PreferenceView
-                android:id="@+id/notificationsO"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:summary="@string/settings_notifications_o_summary"
-                app:title="@string/settings_notifications_title"
-                tools:visibility="gone" />
-
-            <dev.octoshrimpy.quik.common.widget.PreferenceView
                 android:id="@+id/notifications"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:title="@string/settings_notifications_title"
                 app:widget="@layout/settings_switch_widget" />
+
+            <dev.octoshrimpy.quik.common.widget.PreferenceView
+                android:id="@+id/notificationsO"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:summary="@string/settings_notifications_o_summary"
+                app:title="@string/settings_notifications_o_title"
+                tools:visibility="gone" />
 
             <dev.octoshrimpy.quik.common.widget.PreferenceView
                 android:id="@+id/previews"

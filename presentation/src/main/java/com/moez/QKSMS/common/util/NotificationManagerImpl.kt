@@ -373,21 +373,28 @@ class NotificationManagerImpl @Inject constructor(
                 }
                 .forEach { notification.addAction(it) }
 
+        val sc = shortcutManager.getOrCreateShortcut(threadId)
+
+        // QK Reply and the screen wake don't go through the notification, so Android's own settings
+        // wouldn't stop them. Skip both when Android would hide this notification
+        val blockedBySystem = SystemNotificationBlock.isBlocked(notificationManager, getChannelIdForNotification(threadId), sc?.id)
+
         if (prefs.qkreply.get()) {
             notification.priority = NotificationCompat.PRIORITY_DEFAULT
 
-            val intent = Intent(context, QkReplyActivity::class.java)
-                    .putExtra("threadId", threadId)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (!blockedBySystem) {
+                val intent = Intent(context, QkReplyActivity::class.java)
+                        .putExtra("threadId", threadId)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
-            context.startActivity(intent)
+                context.startActivity(intent)
+            }
         }
-        val sc = shortcutManager.getOrCreateShortcut(threadId)
         notification.setShortcutInfo(sc)
         notificationManager.notify(threadId.toInt(), notification.build())
 
         // Wake screen
-        if (prefs.wakeScreen(threadId).get()) {
+        if (prefs.wakeScreen(threadId).get() && !blockedBySystem) {
             context.getSystemService<PowerManager>()?.let { powerManager ->
                 if (!powerManager.isInteractive) {
                     val flags = PowerManager.SCREEN_DIM_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP
