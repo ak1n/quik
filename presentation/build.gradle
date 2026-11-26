@@ -21,6 +21,26 @@ apply plugin: 'realm-android' // Realm needs to be before Kotlin or the build wi
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
+// Debug builds show when and from which commit they were built (Settings > About), so an installed
+// build can be matched to its source. QUIK_BUILD_LABEL, if set, adds a free-form label such as a
+// test build number. "dirty" means the build had uncommitted changes
+def debugBuildInfo() {
+    def git = { List<String> args ->
+        try {
+            def process = (['git'] + args).execute(null, rootDir)
+            process.waitFor()
+            process.exitValue() == 0 ? process.text.trim() : ''
+        } catch (ignored) {
+            ''
+        }
+    }
+    def commit = git(['rev-parse', '--short=8', 'HEAD'])
+    if (commit && git(['status', '--porcelain', '--untracked-files=no'])) commit += ' dirty'
+    def built = new Date().format('yyyy-MM-dd HH:mm', TimeZone.getTimeZone('UTC')) + ' UTC'
+    def label = (System.getenv('QUIK_BUILD_LABEL') ?: '').replaceAll(/["\\]/, '')
+    return [label, built, commit].findAll { it }.join(', ')
+}
+
 android {
     compileSdk 34
 
@@ -32,6 +52,7 @@ android {
         versionName '4.3.7'
         setProperty("archivesBaseName", "QUIK-v${versionName}")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "BUILD_INFO", '""'
     }
 
     signingConfigs {
@@ -68,6 +89,7 @@ android {
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
+            buildConfigField "String", "BUILD_INFO", "\"${debugBuildInfo()}\""
             resValue("string", "app_name", "QUIK-Debug")
             resValue("string", "application_id", defaultConfig.applicationId)
             signingConfig signingConfigs.debug

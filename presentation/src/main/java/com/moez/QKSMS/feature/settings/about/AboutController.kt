@@ -43,7 +43,10 @@ class AboutController : QkController<AboutControllerBinding, AboutView, Unit, Ab
     }
 
     override fun onViewCreated() {
-        binding.version.summary = BuildConfig.VERSION_NAME
+        // Debug builds add when and from which commit they were built
+        binding.version.summary = listOf(BuildConfig.VERSION_NAME, BuildConfig.BUILD_INFO)
+                .filter { it.isNotEmpty() }
+                .joinToString("\n")
     }
 
     override fun onAttach(view: View) {
