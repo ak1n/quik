@@ -31,6 +31,7 @@ import android.os.Messenger
 import android.os.RemoteException
 import dev.octoshrimpy.quik.common.util.extensions.isInstalled
 import dev.octoshrimpy.quik.compat.SubscriptionManagerCompat
+import dev.octoshrimpy.quik.util.MessageTextNormalizer
 import io.reactivex.Completable
 import io.reactivex.Single
 import io.reactivex.subjects.SingleSubject
@@ -121,11 +122,15 @@ class SpamBlockerBlockingClient(
     fun check(address: String, body: String, subId: Int, isTest: Boolean): Single<Verdict> =
             ask(address, body, simSlotFor(subId), isTest)
 
-    /** One bind-ask-unbind round trip, with a timeout so a silent provider can't stall a receive */
+    /**
+     * One bind-ask-unbind round trip, with a timeout so a silent provider can't stall a receive.
+     * The text is sent as it reads, with hidden and look-alike characters undone
+     * ([MessageTextNormalizer]), so SpamBlocker's content rules match obfuscated spam
+     */
     fun ask(address: String, body: String, simSlot: Int?, isTest: Boolean = false): Single<Verdict> {
         if (!isAvailable()) return Single.just(Verdict.Unavailable)
 
-        return ScreeningRequest(context, address, body, simSlot, isTest).send()
+        return ScreeningRequest(context, address, MessageTextNormalizer.clean(body), simSlot, isTest).send()
                 .timeout(timeoutSeconds, TimeUnit.SECONDS)
                 .onErrorReturn { e ->
                     Timber.w(e, "SpamBlocker didn't answer; leaving the message unscreened")

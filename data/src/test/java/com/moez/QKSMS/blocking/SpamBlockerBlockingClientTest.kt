@@ -183,6 +183,17 @@ class SpamBlockerBlockingClientTest {
         test.assertValue(SpamBlockerBlockingClient.Verdict.Answer(true, null, testHonoured = false))
     }
 
+    @Test
+    fun obfuscatedText_isSentAsItReads() {
+        installSpamBlocker { Bundle().apply { putBoolean(SmsScreeningProtocol.KEY_SHOULD_BLOCK, false) } }
+
+        // Cyrillic а and е, and a soft hyphen inside "direct"
+        client.shouldBlock("+15550100300", "I'm \u0430 di\u00ADrect l\u0435nder", -1).test()
+        pump()
+
+        assertEquals("I'm a direct lender", requests[0].getString(SmsScreeningProtocol.KEY_SMS_CONTENT))
+    }
+
     private fun spamCheck(conversations: ConversationRepository): SpamBlockerCheck {
         val shared = PreferenceManager.getDefaultSharedPreferences(app)
         return SpamBlockerCheck(client, conversations, Preferences(app, RxSharedPreferences.create(shared), shared))

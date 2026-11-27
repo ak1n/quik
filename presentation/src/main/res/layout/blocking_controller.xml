@@ -50,6 +50,13 @@
             tools:visibility="visible" />
 
         <dev.octoshrimpy.quik.common.widget.PreferenceView
+            android:id="@+id/shareRecent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:summary="@string/blocking_share_recent_summary"
+            app:title="@string/blocking_share_recent_title" />
+
+        <dev.octoshrimpy.quik.common.widget.PreferenceView
             android:id="@+id/blockedNumbers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

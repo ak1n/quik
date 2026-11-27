@@ -22,6 +22,7 @@ import dev.octoshrimpy.quik.model.Conversation
 import dev.octoshrimpy.quik.model.Message
 import dev.octoshrimpy.quik.repository.ConversationRepository
 import dev.octoshrimpy.quik.util.Preferences
+import dev.octoshrimpy.quik.util.MessageTextNormalizer
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.Single
@@ -50,8 +51,12 @@ class SpamBlockerCheck @Inject constructor(
         val title: String,
         val address: String,
         val body: String,
-        val subId: Int
-    )
+        val subId: Int,
+        val date: Long = 0
+    ) {
+        /** The body with hidden and look-alike characters undone, which is what SpamBlocker is sent */
+        val normalized: MessageTextNormalizer.Result by lazy { MessageTextNormalizer.normalize(body) }
+    }
 
     data class Result(val candidate: Candidate, val verdict: SpamBlockerBlockingClient.Verdict) {
         val answer get() = verdict as? SpamBlockerBlockingClient.Verdict.Answer
@@ -120,7 +125,36 @@ class SpamBlockerCheck @Inject constructor(
                     ?.let { message -> candidate(conversation, message) }
 
     private fun candidate(conversation: Conversation, message: Message) =
-            Candidate(conversation.id, conversation.getTitle(), message.address, message.getText(false), message.subId)
+            Candidate(conversation.id, conversation.getTitle(), message.address, message.getText(false), message.subId,
+                    message.date)
+
+    /**
+     * The newest [perConversation] received messages of the [conversations] most recent unblocked,
+     * unarchived one-to-one conversations with no saved contact: what a spam filter has to judge,
+     * for writing rules against what actually arrives
+     */
+    fun recentFromNonContacts(conversations: Int, perConversation: Int): List<Candidate> =
+            Realm.getDefaultInstance().use { realm ->
+                realm.refresh()
+                realm.where(Conversation::class.java)
+                        .equalTo("blocked", false)
+                        .equalTo("archived", false)
+                        .findAll()
+                        .filter { conversation -> conversation.recipients.size == 1 && conversation.recipients.first()?.contact == null }
+                        .sortedByDescending { conversation -> conversation.date }
+                        .take(conversations)
+                        .flatMap { conversation ->
+                            realm.where(Message::class.java)
+                                    .equalTo("threadId", conversation.id)
+                                    .sort("date", Sort.DESCENDING)
+                                    .findAll()
+                                    .asSequence()
+                                    .filter { message -> !message.isMe() }
+                                    .take(perConversation)
+                                    .map { message -> candidate(conversation, message) }
+                                    .toList()
+                        }
+            }
 
     /** Checks one message as a test */
     fun check(candidate: Candidate): Single<Result> =

@@ -61,6 +61,7 @@ class BlockingController : QkController<BlockingControllerBinding, BlockingView,
         super.onViewCreated()
         binding.parent.postDelayed({ binding.parent.animateLayoutChanges = true }, 100)
         binding.checkExisting.setOnClickListener { activity?.let(spamCheckDialogs::checkExisting) }
+        binding.shareRecent.setOnClickListener { activity?.let(spamCheckDialogs::shareRecent) }
     }
 
     override fun onAttach(view: View) {

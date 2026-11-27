@@ -19,9 +19,12 @@
 package dev.octoshrimpy.quik.feature.blocking
 
 import android.app.Activity
+import android.content.Intent
+import android.graphics.Typeface
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -34,6 +37,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -104,24 +110,26 @@ class SpamCheckDialogs @Inject constructor(
     private fun showMessageResult(activity: Activity, result: SpamBlockerCheck.Result) {
         val answer = result.answer ?: return unavailable(activity)
         val builder = AlertDialog.Builder(activity)
+        val obfuscated = obfuscationNote(activity, listOf(result))
 
         if (!answer.shouldBlock) {
             val message = StringBuilder(activity.getString(R.string.spam_check_allowed_message))
             allowedBy(activity, listOf(result))?.let { message.append("\n\n").append(it) }
+            obfuscated?.let { message.append("\n\n").append(it) }
             builder.setTitle(R.string.spam_check_allowed_title)
                     .setMessage(message)
                     .setPositiveButton(android.R.string.ok, null)
+                    .setNeutralButton(R.string.spam_check_show_text) { _, _ -> showTextSent(activity, result.candidate) }
                     .show()
             return
         }
 
-        val message = activity.getString(R.string.spam_check_blocked_message,
-                answer.reason ?: activity.getString(R.string.spam_check_no_reason))
+        val message = StringBuilder(activity.getString(R.string.spam_check_blocked_message,
+                answer.reason ?: activity.getString(R.string.spam_check_no_reason)))
+        obfuscated?.let { message.append("\n\n").append(it) }
+        if (!answer.testHonoured) message.append("\n\n").append(activity.getString(R.string.spam_check_counted_as_real))
         builder.setTitle(R.string.spam_check_blocked_title)
-                .setMessage(when (answer.testHonoured) {
-                    true -> message
-                    false -> message + "\n\n" + activity.getString(R.string.spam_check_counted_as_real)
-                })
+                .setMessage(message)
                 .setPositiveButton(R.string.spam_check_move_to_blocked) { _, _ ->
                     block(activity, listOf(result), report = false)
                 }
@@ -132,6 +140,45 @@ class SpamCheckDialogs @Inject constructor(
             }
         }
         builder.show()
+    }
+
+    /**
+     * Shares the newest received messages from senders not in the contacts, as plain text with the
+     * same normalisation the filters see, for writing rules against what actually arrives
+     */
+    fun shareRecent(activity: Activity) {
+        val progress = progressDialog(activity, activity.getString(R.string.spam_check_collecting_messages))
+        val disposable = Single.fromCallable { spamCheck.recentFromNonContacts(RECENT_CONVERSATIONS, RECENT_PER_CONVERSATION) }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ candidates ->
+                    progress.dismiss()
+                    if (activity.isFinishing) return@subscribe
+                    if (candidates.isEmpty()) return@subscribe toast(activity, R.string.spam_check_not_received)
+
+                    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
+                    val text = buildString {
+                        val conversations = candidates.distinctBy { it.threadId }.size
+                        append(activity.getString(R.string.spam_check_recent_header, conversations)).append("\n")
+                        candidates.groupBy { it.threadId }.values.forEach { messages ->
+                            val first = messages.first()
+                            append("\n## ").append(first.address)
+                            if (first.title != first.address) append(" (").append(first.title).append(")")
+                            append("\n")
+                            messages.forEach { c ->
+                                append("- ").append(dateFormat.format(Date(c.date))).append(": ")
+                                        .append(c.normalized.text.replace("\n", " ⏎ ")).append("\n")
+                            }
+                        }
+                    }
+                    val intent = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
+                    activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.blocking_share_recent_title)))
+                }, { e ->
+                    Timber.w(e)
+                    progress.dismiss()
+                })
+        progress.setOnCancelListener { disposable.dispose() }
+        progress.show()
     }
 
     /** Warns how long it takes and what SpamBlocker does with the checks, then runs them */
@@ -283,14 +330,76 @@ class SpamCheckDialogs @Inject constructor(
             }
         }
         if (unanswered > 0) message.append("\n\n").append(res.getQuantityString(R.plurals.spam_check_unanswered_messages, unanswered, unanswered))
+        obfuscationNote(activity, results)?.let { message.append("\n\n").append(it) }
         if (progress.results.size < progress.total) {
             message.append("\n\n").append(activity.getString(R.string.spam_check_stopped, progress.results.size, progress.total))
         }
 
         if (flagged.isEmpty()) {
             builder.setTitle(R.string.spam_check_allowed_title).setPositiveButton(android.R.string.ok, null)
+            // The newest message, for working out why a rule didn't match
+            results.firstOrNull()?.let { newest ->
+                builder.setNeutralButton(R.string.spam_check_show_text) { _, _ -> showTextSent(activity, newest.candidate) }
+            }
         }
         builder.setMessage(message).show()
+    }
+
+    /**
+     * The text exactly as SpamBlocker received it, in a monospace face so look-alike glyphs (I/l,
+     * O/0) can be told apart, and every character outside plain ASCII named
+     */
+    private fun showTextSent(activity: Activity, candidate: SpamBlockerCheck.Candidate) {
+        val normalized = candidate.normalized
+        val unusual = codePoints(candidate.body).filter { cp -> cp > 0x7E }.groupingBy { it }.eachCount()
+        val detail = StringBuilder()
+        if (normalized.changed) detail.append(activity.getString(R.string.spam_check_text_fixed, normalized.total)).append("\n\n")
+        detail.append(activity.getString(when (unusual.isEmpty()) {
+            true -> R.string.spam_check_text_none
+            false -> R.string.spam_check_text_unusual
+        }))
+        unusual.forEach { (cp, count) ->
+            detail.append("\nU+%04X %s ×%d".format(cp, Character.getName(cp) ?: "?", count))
+        }
+
+        val padding = 24.dpToPx(activity)
+        val view = LinearLayout(activity).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(padding, padding / 2, padding, 0)
+            addView(TextView(activity).apply {
+                text = normalized.text
+                typeface = Typeface.MONOSPACE
+                setTextIsSelectable(true)
+            })
+            addView(TextView(activity).apply { text = detail; setPadding(0, padding / 2, 0, 0) })
+        }
+        // A plain-ASCII copy survives any messenger or keyboard: U+XXXX in place of every unusual character
+        val dump = StringBuilder()
+        codePoints(candidate.body).forEach { cp ->
+            if (cp > 0x7E) dump.append("<U+%04X>".format(cp)) else dump.appendCodePoint(cp)
+        }
+        dump.append("\n\n").append(detail)
+
+        AlertDialog.Builder(activity)
+                .setTitle(R.string.spam_check_text_title)
+                .setView(ScrollView(activity).apply { addView(view) })
+                .setPositiveButton(android.R.string.ok, null)
+                .setNeutralButton(R.string.spam_check_share_text) { _, _ ->
+                    val intent = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, dump.toString())
+                    activity.startActivity(Intent.createChooser(intent, activity.getString(R.string.spam_check_text_title)))
+                }
+                .show()
+    }
+
+    private fun codePoints(text: String): List<Int> {
+        val list = ArrayList<Int>(text.length)
+        var i = 0
+        while (i < text.length) {
+            val cp = text.codePointAt(i)
+            list += cp
+            i += Character.charCount(cp)
+        }
+        return list
     }
 
     /** SpamBlocker's reasons for letting [results] through, if it gave any */
@@ -301,6 +410,18 @@ class SpamCheckDialogs @Inject constructor(
             .distinct()
             .takeIf { it.isNotEmpty() }
             ?.let { reasons -> activity.getString(R.string.spam_check_allowed_by, reasons.joinToString("; ")) }
+
+    /** How many of [results] had hidden or look-alike characters undone before they were checked */
+    private fun obfuscationNote(activity: Activity, results: List<SpamBlockerCheck.Result>): String? {
+        val obfuscated = results.filter { it.candidate.normalized.changed }
+        return when {
+            obfuscated.isEmpty() -> null
+            results.size == 1 -> obfuscated.single().candidate.normalized.total.let { n ->
+                activity.resources.getQuantityString(R.plurals.spam_check_obfuscated, n, n)
+            }
+            else -> activity.resources.getQuantityString(R.plurals.spam_check_obfuscated_messages, obfuscated.size, obfuscated.size)
+        }
+    }
 
     private fun snippet(body: String): String = body.replace(Regex("\\s+"), " ").trim().let { text ->
         if (text.length > 80) text.take(80).trimEnd() + "…" else text
@@ -342,6 +463,9 @@ class SpamCheckDialogs @Inject constructor(
     companion object {
         /** Received messages checked per conversation when several are selected */
         private const val SELECTED_CONVERSATION_LIMIT = 10
+        /** What "share recent messages" covers */
+        private const val RECENT_CONVERSATIONS = 60
+        private const val RECENT_PER_CONVERSATION = 5
     }
 
 }

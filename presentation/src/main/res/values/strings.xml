@@ -358,6 +358,9 @@
     <string name="blocking_manager_spamblocker_summary">Screen incoming messages with SpamBlocker\'s rules, then notify from QUIK. Numbers blocked in QUIK stay blocked. Turn off SpamBlocker\'s own SMS notifications so you don\'t get two</string>
     <string name="compose_menu_check_spam">Check with SpamBlocker</string>
     <string name="blocking_check_existing_title">Check existing conversations</string>
+    <string name="blocking_share_recent_title">Share recent messages from unknown senders</string>
+    <string name="blocking_share_recent_summary">The newest received messages from numbers not in your contacts, as text, for writing filter rules</string>
+    <string name="spam_check_recent_header">Newest received messages from %d conversations with senders not in contacts, newest first. Text shown as the filters see it.</string>
     <string name="blocking_check_existing_summary">Ask SpamBlocker about messages that arrived before it was the blocking manager</string>
     <string name="spam_check_checking">Checking with SpamBlocker…</string>
     <string name="spam_check_not_received">Only received messages can be checked</string>
@@ -382,6 +385,12 @@
     <string name="spam_check_collecting_messages">Finding received messages…</string>
     <string name="spam_check_allowed_by">SpamBlocker\'s reason: %s</string>
     <string name="spam_check_and_more">…and %d more</string>
+    <string name="spam_check_show_text">Show text sent</string>
+    <string name="spam_check_share_text">Share</string>
+    <string name="spam_check_text_title">Text sent to SpamBlocker</string>
+    <string name="spam_check_text_fixed">%d hidden or look-alike characters were fixed before sending.</string>
+    <string name="spam_check_text_none">Every character is plain ASCII.</string>
+    <string name="spam_check_text_unusual">Characters outside plain ASCII:</string>
     <string name="spam_check_stopped">Stopped after %1$d of %2$d messages.</string>
     <string name="compose_menu_check_spam_message">Check message with SpamBlocker</string>
     <string name="compose_menu_check_spam_conversation">Check conversation with SpamBlocker</string>
@@ -392,6 +401,14 @@
     <plurals name="spam_check_conversation_spam">
         <item quantity="one">Spam: %1$d of %2$d messages</item>
         <item quantity="other">Spam: %1$d of %2$d messages</item>
+    </plurals>
+    <plurals name="spam_check_obfuscated">
+        <item quantity="one">The text contained %d hidden or look-alike character, which was fixed before checking.</item>
+        <item quantity="other">The text contained %d hidden or look-alike characters, which were fixed before checking.</item>
+    </plurals>
+    <plurals name="spam_check_obfuscated_messages">
+        <item quantity="one">%d message contained hidden or look-alike characters, fixed before checking.</item>
+        <item quantity="other">%d messages contained hidden or look-alike characters, fixed before checking.</item>
     </plurals>
     <plurals name="spam_check_unanswered_messages">
         <item quantity="one">SpamBlocker didn\'t answer for %d message.</item>
