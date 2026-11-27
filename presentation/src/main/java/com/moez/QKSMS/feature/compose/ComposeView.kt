@@ -92,6 +92,8 @@ interface ComposeView : QkView<ComposeState> {
     fun toggleSelectAll()
     fun expandMessages(messageIds: List<Long>, expand: Boolean)
     fun showDetails(details: String)
+    fun showSpamCheck(messageId: Long)
+    fun showSpamCheckForConversation(threadId: Long)
     fun showMessageLinkAskDialog(uri: Uri)
     fun requestDefaultSms()
     fun requestStoragePermission()

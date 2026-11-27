@@ -56,6 +56,7 @@
     <string name="main_menu_read">Mark read</string>
     <string name="main_menu_unread">Mark unread</string>
     <string name="main_menu_block">Block</string>
+    <string name="main_menu_check_spam">Check with SpamBlocker</string>
     <string name="main_menu_send_now">Send now</string>
     <string name="main_menu_edit_message">Edit message</string>
     <string name="main_menu_rename_conversation">Rename conversation</string>
@@ -202,6 +203,7 @@
     <string name="info_archive">Archive</string>
     <string name="info_unarchive">Unarchive</string>
     <string name="info_block">Block</string>
+    <string name="info_check_spam">Check with SpamBlocker</string>
     <string name="info_unblock">Unblock</string>
     <string name="info_delete">Delete conversation</string>
 
@@ -354,6 +356,64 @@
     <string name="blocking_manager_sia_summary">Automatically filter messages from unsolicited numbers by using the \"Should I Answer\" app</string>
     <string name="blocking_manager_spamblocker_title" translatable="false">SpamBlocker</string>
     <string name="blocking_manager_spamblocker_summary">Screen incoming messages with SpamBlocker\'s rules, then notify from QUIK. Numbers blocked in QUIK stay blocked. Turn off SpamBlocker\'s own SMS notifications so you don\'t get two</string>
+    <string name="compose_menu_check_spam">Check with SpamBlocker</string>
+    <string name="blocking_check_existing_title">Check existing conversations</string>
+    <string name="blocking_check_existing_summary">Ask SpamBlocker about messages that arrived before it was the blocking manager</string>
+    <string name="spam_check_checking">Checking with SpamBlocker…</string>
+    <string name="spam_check_not_received">Only received messages can be checked</string>
+    <string name="spam_check_allowed_title">Not spam</string>
+    <string name="spam_check_allowed_message">SpamBlocker would let this message through.</string>
+    <string name="spam_check_blocked_title">Spam</string>
+    <string name="spam_check_blocked_message">SpamBlocker would block this message: %s</string>
+    <string name="spam_check_no_reason">no reason given</string>
+    <string name="spam_check_counted_as_real">This version of SpamBlocker treated the check as a new message: it\'s in SpamBlocker\'s history, and if its auto-report is on, the number has been reported.</string>
+    <string name="spam_check_move_to_blocked">Move to Blocked</string>
+    <string name="spam_check_block_and_report">Block and report</string>
+    <string name="spam_check_existing_title">Check existing conversations</string>
+    <string name="spam_check_conversations_title">Check selected conversations</string>
+    <string name="spam_check_existing_message">QUIK sends the latest received message of each conversation to SpamBlocker, one at a time, then shows what SpamBlocker would block. Nothing moves until you confirm. Group conversations are skipped.\n\nThis can take a while, roughly a minute for every few hundred conversations. Keep this screen open until it finishes.\n\nSpamBlocker versions that don\'t support test checks treat these as new messages: they appear in SpamBlocker\'s history and, if its auto-report is on, numbers it blocks are reported. To avoid that, turn auto-report off in SpamBlocker before you start.</string>
+    <string name="spam_check_include_contacts">Include saved contacts</string>
+    <string name="spam_check_start">Start</string>
+    <string name="spam_check_open_spamblocker">Open SpamBlocker</string>
+    <string name="spam_check_collecting">Finding conversations…</string>
+    <string name="spam_check_progress">Checked %1$d of %2$d</string>
+    <string name="spam_check_stop">Stop</string>
+    <string name="spam_check_conversation_title">Check conversation</string>
+    <string name="spam_check_collecting_messages">Finding received messages…</string>
+    <string name="spam_check_allowed_by">SpamBlocker\'s reason: %s</string>
+    <string name="spam_check_and_more">…and %d more</string>
+    <string name="spam_check_stopped">Stopped after %1$d of %2$d messages.</string>
+    <string name="compose_menu_check_spam_message">Check message with SpamBlocker</string>
+    <string name="compose_menu_check_spam_conversation">Check conversation with SpamBlocker</string>
+    <plurals name="spam_check_conversation_none">
+        <item quantity="one">SpamBlocker would let the %d received message through.</item>
+        <item quantity="other">SpamBlocker would let all %d received messages through.</item>
+    </plurals>
+    <plurals name="spam_check_conversation_spam">
+        <item quantity="one">Spam: %1$d of %2$d messages</item>
+        <item quantity="other">Spam: %1$d of %2$d messages</item>
+    </plurals>
+    <plurals name="spam_check_unanswered_messages">
+        <item quantity="one">SpamBlocker didn\'t answer for %d message.</item>
+        <item quantity="other">SpamBlocker didn\'t answer for %d messages.</item>
+    </plurals>
+    <string name="spam_check_unavailable">SpamBlocker didn\'t answer. Make sure it\'s installed and turned on.</string>
+    <plurals name="spam_check_none">
+        <item quantity="one">SpamBlocker wouldn\'t block the conversation checked.</item>
+        <item quantity="other">SpamBlocker wouldn\'t block any of the %d conversations checked.</item>
+    </plurals>
+    <plurals name="spam_check_unanswered">
+        <item quantity="one">SpamBlocker didn\'t answer for %d conversation.</item>
+        <item quantity="other">SpamBlocker didn\'t answer for %d conversations.</item>
+    </plurals>
+    <plurals name="spam_check_review_title">
+        <item quantity="one">Spam: %1$d of %2$d checked</item>
+        <item quantity="other">Spam: %1$d of %2$d checked</item>
+    </plurals>
+    <plurals name="spam_check_moved">
+        <item quantity="one">Moved %d conversation to Blocked messages</item>
+        <item quantity="other">Moved %d conversations to Blocked messages</item>
+    </plurals>
     <string name="blocking_manager_copy_title">Copy blocked numbers</string>
     <string name="blocking_manager_copy_summary">Continue to %s and copy over your existing blocked numbers</string>
 

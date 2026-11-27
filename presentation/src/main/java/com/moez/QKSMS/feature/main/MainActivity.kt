@@ -64,6 +64,7 @@ import dev.octoshrimpy.quik.feature.conversations.ConversationItemTouchCallback
 import dev.octoshrimpy.quik.feature.conversations.ConversationsAdapter
 import dev.octoshrimpy.quik.manager.ChangelogManager
 import dev.octoshrimpy.quik.repository.SyncRepository
+import dev.octoshrimpy.quik.feature.blocking.SpamCheckDialogs
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
@@ -73,6 +74,7 @@ import javax.inject.Inject
 class MainActivity : QkThemedActivity(), MainView {
 
     @Inject lateinit var blockingDialog: BlockingDialog
+    @Inject lateinit var spamCheckDialogs: SpamCheckDialogs
     @Inject lateinit var disposables: CompositeDisposable
     @Inject lateinit var externalNavigator: ExternalNavigator
     @Inject lateinit var conversationsAdapter: ConversationsAdapter
@@ -263,6 +265,7 @@ class MainActivity : QkThemedActivity(), MainView {
             findItem(R.id.unread)?.isVisible = ( !markRead && selectedConversations != 0 ) ||
                     selectedConversations > 1
             findItem(R.id.block)?.isVisible = selectedConversations != 0
+            findItem(R.id.check_spam)?.isVisible = selectedConversations != 0 && spamCheckDialogs.isAvailable()
             findItem(R.id.rename)?.isVisible = selectedConversations == 1
         }
 
@@ -430,6 +433,8 @@ class MainActivity : QkThemedActivity(), MainView {
     override fun showBlockingDialog(conversations: List<Long>, block: Boolean) {
         blockingDialog.show(this, conversations, block)
     }
+
+    override fun showSpamCheck(conversations: List<Long>) = spamCheckDialogs.checkConversations(this, conversations)
 
     override fun showDeleteDialog(conversations: List<Long>) {
         AlertDialog.Builder(this)

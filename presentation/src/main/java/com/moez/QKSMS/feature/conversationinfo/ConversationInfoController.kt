@@ -37,6 +37,7 @@ import dev.octoshrimpy.quik.feature.blocking.BlockingDialog
 import dev.octoshrimpy.quik.feature.conversationinfo.injection.ConversationInfoModule
 import dev.octoshrimpy.quik.feature.themepicker.ThemePickerController
 import dev.octoshrimpy.quik.injection.appComponent
+import dev.octoshrimpy.quik.feature.blocking.SpamCheckDialogs
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.Subject
@@ -51,6 +52,7 @@ class ConversationInfoController(
 
     @Inject override lateinit var presenter: ConversationInfoPresenter
     @Inject lateinit var blockingDialog: BlockingDialog
+    @Inject lateinit var spamCheckDialogs: SpamCheckDialogs
     @Inject lateinit var externalNavigator : ExternalNavigator
     @Inject lateinit var adapter: ConversationInfoAdapter
 
@@ -108,6 +110,7 @@ class ConversationInfoController(
     override fun markUnreadClicks(): Observable<*> = adapter.markUnreadClicks
     override fun archiveClicks(): Observable<*> = adapter.archiveClicks
     override fun blockClicks(): Observable<*> = adapter.blockClicks
+    override fun checkSpamClicks(): Observable<*> = adapter.checkSpamClicks
     override fun deleteClicks(): Observable<*> = adapter.deleteClicks
     override fun confirmDelete(): Observable<*> = confirmDeleteSubject
     override fun mediaClicks(): Observable<Long> = adapter.mediaClicks
@@ -123,6 +126,8 @@ class ConversationInfoController(
     override fun showBlockingDialog(conversations: List<Long>, block: Boolean) {
         blockingDialog.show(activity!!, conversations, block)
     }
+
+    override fun showSpamCheck(threadId: Long) = spamCheckDialogs.checkConversation(activity!!, threadId)
 
     override fun requestDefaultSms() {
         externalNavigator.showDefaultSmsDialog(activity!!)

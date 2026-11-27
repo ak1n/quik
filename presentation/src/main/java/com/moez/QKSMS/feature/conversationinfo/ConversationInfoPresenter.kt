@@ -40,6 +40,7 @@ import dev.octoshrimpy.quik.manager.PermissionManager
 import dev.octoshrimpy.quik.model.Conversation
 import dev.octoshrimpy.quik.repository.ConversationRepository
 import dev.octoshrimpy.quik.repository.MessageRepository
+import dev.octoshrimpy.quik.blocking.SpamBlockerCheck
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.plusAssign
@@ -60,7 +61,8 @@ class ConversationInfoPresenter @Inject constructor(
     private val markUnarchived: MarkUnarchived,
     private val navigator: Navigator,
     private val externalNavigator: ExternalNavigator,
-    private val permissionManager: PermissionManager
+    private val permissionManager: PermissionManager,
+    private val spamCheck: SpamBlockerCheck
 ) : QkPresenter<ConversationInfoView, ConversationInfoState>(
         ConversationInfoState(threadId = threadId)
 ) {
@@ -101,7 +103,8 @@ class ConversationInfoPresenter @Inject constructor(
                             name = conversation.name,
                             recipients = conversation.recipients,
                             archived = conversation.archived,
-                            blocked = conversation.blocked)
+                            blocked = conversation.blocked,
+                            spamCheckAvailable = spamCheck.isActive())
                     data += parts.map(::ConversationInfoMedia)
 
                     newState { copy(data = data) }
@@ -186,6 +189,12 @@ class ConversationInfoPresenter @Inject constructor(
                 .withLatestFrom(conversation) { _, conversation -> conversation }
                 .autoDisposable(view.scope())
                 .subscribe { conversation -> view.showBlockingDialog(listOf(conversation.id), !conversation.blocked) }
+
+        // Ask SpamBlocker about the conversation's received messages
+        view.checkSpamClicks()
+                .withLatestFrom(conversation) { _, conversation -> conversation }
+                .autoDisposable(view.scope())
+                .subscribe { conversation -> view.showSpamCheck(conversation.id) }
 
         // Show the delete confirmation dialog
         view.deleteClicks()

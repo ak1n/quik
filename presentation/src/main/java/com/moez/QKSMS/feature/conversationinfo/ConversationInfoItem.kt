@@ -12,7 +12,9 @@ sealed class ConversationInfoItem {
         val name: String,
         val recipients: RealmList<Recipient>,
         val archived: Boolean,
-        val blocked: Boolean
+        val blocked: Boolean,
+        /** SpamBlocker is the blocking manager, so its check can be offered */
+        val spamCheckAvailable: Boolean = false
     ) : ConversationInfoItem()
 
     data class ConversationInfoMedia(val value: MmsPart) : ConversationInfoItem()

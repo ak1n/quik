@@ -487,6 +487,16 @@ class MainViewModel @Inject constructor(
                 .autoDisposable(view.scope())
                 .subscribe()
 
+        // Ask SpamBlocker about the selected conversations' received messages
+        view.optionsItemIntent
+                .filter { itemId -> itemId == R.id.check_spam }
+                .withLatestFrom(view.conversationsSelectedIntent) { _, conversations ->
+                    view.showSpamCheck(conversations.toList())
+                    view.clearSelection()
+                }
+                .autoDisposable(view.scope())
+                .subscribe()
+
         view.optionsItemIntent
             .filter { itemId -> itemId == R.id.rename }
             .withLatestFrom(view.conversationsSelectedIntent) { _, conversationIds -> conversationIds.first() }

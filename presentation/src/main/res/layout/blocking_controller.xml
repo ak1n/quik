@@ -41,6 +41,15 @@
             tools:summary="@string/app_name" />
 
         <dev.octoshrimpy.quik.common.widget.PreferenceView
+            android:id="@+id/checkExisting"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:summary="@string/blocking_check_existing_summary"
+            app:title="@string/blocking_check_existing_title"
+            tools:visibility="visible" />
+
+        <dev.octoshrimpy.quik.common.widget.PreferenceView
             android:id="@+id/blockedNumbers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -91,6 +91,13 @@
         app:showAsAction="ifRoom" />
 
     <item
+        android:id="@+id/check_spam"
+        android:icon="@drawable/ic_blocking_manager_spamblocker"
+        android:title="@string/main_menu_check_spam"
+        android:visible="false"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/rename"
         android:icon="@drawable/ic_people_black_24dp"
         android:title="@string/main_menu_rename_conversation"

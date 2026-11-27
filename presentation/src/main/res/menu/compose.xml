@@ -55,6 +55,11 @@
         android:visible="false"
         app:showAsAction="always" />
     <item
+        android:id="@+id/check_spam"
+        android:title="@string/compose_menu_check_spam_message"
+        android:visible="false"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/delete"
         android:icon="@drawable/ic_delete_white_24dp"
         android:title="@string/compose_menu_delete"

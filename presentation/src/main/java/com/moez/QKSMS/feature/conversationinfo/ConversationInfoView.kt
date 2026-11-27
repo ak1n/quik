@@ -32,6 +32,7 @@ interface ConversationInfoView : QkViewContract<ConversationInfoState> {
     fun markUnreadClicks(): Observable<*>
     fun archiveClicks(): Observable<*>
     fun blockClicks(): Observable<*>
+    fun checkSpamClicks(): Observable<*>
     fun deleteClicks(): Observable<*>
     fun confirmDelete(): Observable<*>
     fun mediaClicks(): Observable<Long>
@@ -39,6 +40,7 @@ interface ConversationInfoView : QkViewContract<ConversationInfoState> {
     fun showNameDialog(name: String)
     fun showThemePicker(recipientId: Long)
     fun showBlockingDialog(conversations: List<Long>, block: Boolean)
+    fun showSpamCheck(threadId: Long)
     fun requestDefaultSms()
     fun showDeleteDialog()
 

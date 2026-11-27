@@ -20,6 +20,7 @@ package dev.octoshrimpy.quik.feature.blocking
 
 import android.view.LayoutInflater
 import android.view.View
+import androidx.core.view.isVisible
 import android.view.ViewGroup
 import com.bluelinelabs.conductor.RouterTransaction
 import com.jakewharton.rxbinding2.view.clicks
@@ -49,6 +50,7 @@ class BlockingController : QkController<BlockingControllerBinding, BlockingView,
 
     @Inject lateinit var colors: Colors
     @Inject override lateinit var presenter: BlockingPresenter
+    @Inject lateinit var spamCheckDialogs: SpamCheckDialogs
 
     init {
         appComponent.inject(this)
@@ -58,6 +60,7 @@ class BlockingController : QkController<BlockingControllerBinding, BlockingView,
     override fun onViewCreated() {
         super.onViewCreated()
         binding.parent.postDelayed({ binding.parent.animateLayoutChanges = true }, 100)
+        binding.checkExisting.setOnClickListener { activity?.let(spamCheckDialogs::checkExisting) }
     }
 
     override fun onAttach(view: View) {
@@ -69,6 +72,8 @@ class BlockingController : QkController<BlockingControllerBinding, BlockingView,
 
     override fun render(state: BlockingState) {
         binding.blockingManager.summary = state.blockingManager
+        // Only SpamBlocker can be asked about messages that already arrived
+        binding.checkExisting.isVisible = spamCheckDialogs.isAvailable()
         binding.drop.checkbox?.isChecked = state.dropEnabled
         binding.blockedMessages.isEnabled = !state.dropEnabled
     }

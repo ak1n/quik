@@ -69,7 +69,12 @@ class SpamBlockerBlockingClient(
 
     /** What the provider said, or that it couldn't be asked */
     sealed class Verdict {
-        data class Answer(val shouldBlock: Boolean, val reason: String?) : Verdict()
+        /** [testHonoured]: this was a test check and the provider confirmed it treated it as one */
+        data class Answer(
+            val shouldBlock: Boolean,
+            val reason: String?,
+            val testHonoured: Boolean = false
+        ) : Verdict()
         object Unavailable : Verdict()
     }
 
@@ -109,11 +114,18 @@ class SpamBlockerBlockingClient(
         }
     }
 
+    /**
+     * Asks SpamBlocker about a message that has already arrived, without QUIK's own list in the way.
+     * [isTest] asks SpamBlocker to treat it as a test; see [SmsScreeningProtocol.KEY_IS_TEST]
+     */
+    fun check(address: String, body: String, subId: Int, isTest: Boolean): Single<Verdict> =
+            ask(address, body, simSlotFor(subId), isTest)
+
     /** One bind-ask-unbind round trip, with a timeout so a silent provider can't stall a receive */
-    fun ask(address: String, body: String, simSlot: Int?): Single<Verdict> {
+    fun ask(address: String, body: String, simSlot: Int?, isTest: Boolean = false): Single<Verdict> {
         if (!isAvailable()) return Single.just(Verdict.Unavailable)
 
-        return ScreeningRequest(context, address, body, simSlot).send()
+        return ScreeningRequest(context, address, body, simSlot, isTest).send()
                 .timeout(timeoutSeconds, TimeUnit.SECONDS)
                 .onErrorReturn { e ->
                     Timber.w(e, "SpamBlocker didn't answer; leaving the message unscreened")
@@ -133,7 +145,8 @@ class SpamBlockerBlockingClient(
         private val context: Context,
         private val address: String,
         private val body: String,
-        private val simSlot: Int?
+        private val simSlot: Int?,
+        private val isTest: Boolean
     ) : ServiceConnection {
 
         private val subject: SingleSubject<Verdict> = SingleSubject.create()
@@ -174,13 +187,15 @@ class SpamBlockerBlockingClient(
                     putString(SmsScreeningProtocol.KEY_NUMBER, address)
                     putString(SmsScreeningProtocol.KEY_SMS_CONTENT, body)
                     simSlot?.let { slot -> putInt(SmsScreeningProtocol.KEY_SIM_SLOT, slot) }
+                    if (isTest) putBoolean(SmsScreeningProtocol.KEY_IS_TEST, true)
                 }
                 replyTo = Messenger(Handler(Looper.getMainLooper()) { reply ->
                     if (reply.what == SmsScreeningProtocol.WHAT_RESULT) {
                         val data = reply.data
                         subject.onSuccess(Verdict.Answer(
                                 shouldBlock = data.getBoolean(SmsScreeningProtocol.KEY_SHOULD_BLOCK, false),
-                                reason = data.getString(SmsScreeningProtocol.KEY_REASON)))
+                                reason = data.getString(SmsScreeningProtocol.KEY_REASON),
+                                testHonoured = isTest && data.getBoolean(SmsScreeningProtocol.KEY_IS_TEST, false)))
                     }
                     true
                 })

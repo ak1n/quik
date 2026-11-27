@@ -40,6 +40,14 @@ object SmsScreeningProtocol {
     const val KEY_SMS_CONTENT = "smsContent"
     const val KEY_SIM_SLOT = "simSlot"
 
+    /**
+     * Proposed extension, not in the spec yet: true marks a check of an old message rather than a
+     * newly received one, so the provider can treat it as a test (SpamBlocker: tagged as a test in
+     * its history and never auto-reported). Sent only on such checks. A provider that honours it
+     * echoes it back in the reply; one that doesn't just ignores the unknown extra
+     */
+    const val KEY_IS_TEST = "isTest"
+
     // Reply extras
     const val KEY_SHOULD_BLOCK = "shouldBlock"
     const val KEY_REASON = "reason"

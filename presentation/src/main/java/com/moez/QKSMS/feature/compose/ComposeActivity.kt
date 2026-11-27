@@ -77,6 +77,7 @@ import dev.octoshrimpy.quik.common.util.extensions.setVisible
 import dev.octoshrimpy.quik.common.util.extensions.showKeyboard
 import dev.octoshrimpy.quik.common.widget.MicInputCloudView
 import dev.octoshrimpy.quik.extensions.mapNotNull
+import dev.octoshrimpy.quik.feature.blocking.SpamCheckDialogs
 import dev.octoshrimpy.quik.feature.compose.editing.ChipsAdapter
 import dev.octoshrimpy.quik.feature.contacts.ContactsActivity
 import dev.octoshrimpy.quik.model.Attachment
@@ -103,6 +104,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     @Inject lateinit var dateFormatter: DateFormatter
     @Inject lateinit var messageAdapter: MessagesAdapter
     @Inject lateinit var externalNavigator : ExternalNavigator
+    @Inject lateinit var spamCheckDialogs: SpamCheckDialogs
     @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
     private lateinit var binding: ComposeActivityBinding
@@ -474,6 +476,12 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         binding.toolbar.menu.findItem(R.id.share)?.isVisible =
             !state.editingMode && state.selectedMessages > 0 && state.selectedMessagesHaveText
         binding.toolbar.menu.findItem(R.id.details)?.isVisible = !state.editingMode && state.selectedMessages == 1
+        // Only while one message is selected. The conversation's ⋮ is the info button, not an
+        // overflow menu, so an overflow item shown next to it would add a second ⋮; checking the
+        // whole conversation lives in Conversation info instead. Looked up on each render so it
+        // shows as soon as SpamBlocker becomes the blocking manager
+        binding.toolbar.menu.findItem(R.id.check_spam)?.isVisible = !state.editingMode
+                && state.query.isEmpty() && state.selectedMessages == 1 && spamCheckDialogs.isAvailable()
         binding.toolbar.menu.findItem(R.id.delete)?.isVisible = !state.editingMode && ((state.selectedMessages > 0) || state.canSend)
         binding.toolbar.menu.findItem(R.id.forward)?.isVisible = !state.editingMode && state.selectedMessages == 1
         binding.toolbar.menu.findItem(R.id.show_status)?.isVisible = !state.editingMode && state.selectedMessages > 0
@@ -586,6 +594,10 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override fun expandMessages(messageIds: List<Long>, expand: Boolean) {
         messageAdapter.expandMessages(messageIds, expand)
     }
+
+    override fun showSpamCheck(messageId: Long) = spamCheckDialogs.checkMessage(this, messageId)
+
+    override fun showSpamCheckForConversation(threadId: Long) = spamCheckDialogs.checkConversation(this, threadId)
 
     override fun showDetails(details: String) {
         AlertDialog.Builder(this)

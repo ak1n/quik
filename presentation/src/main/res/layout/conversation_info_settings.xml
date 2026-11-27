@@ -65,6 +65,14 @@
         app:title="@string/info_block" />
 
     <dev.octoshrimpy.quik.common.widget.PreferenceView
+        android:id="@+id/checkSpam"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:icon="@drawable/ic_blocking_manager_spamblocker"
+        app:title="@string/info_check_spam" />
+
+    <dev.octoshrimpy.quik.common.widget.PreferenceView
         android:id="@+id/delete"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

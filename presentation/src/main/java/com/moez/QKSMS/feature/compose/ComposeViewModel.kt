@@ -494,6 +494,24 @@ class ComposeViewModel @Inject constructor(
                 .autoDisposable(view.scope())
                 .subscribe { view.showDetails(it) }
 
+        // Ask SpamBlocker about the selected message, or with none selected the whole conversation
+        view.optionsItemIntent
+                .filter { it == R.id.check_spam }
+                // The selection stream emits nothing until a message is first selected
+                .withLatestFrom(view.messagesSelectedIntent.startWith(listOf<Long>()), conversation) { _, messages, conversation ->
+                    messages to conversation.id
+                }
+                .autoDisposable(view.scope())
+                .subscribe { (messages, threadId) ->
+                    when (val messageId = messages.firstOrNull()) {
+                        null -> view.showSpamCheckForConversation(threadId)
+                        else -> {
+                            view.clearSelection()
+                            view.showSpamCheck(messageId)
+                        }
+                    }
+                }
+
         // Show the delete message dialog if one or more messages selected
         view.optionsItemIntent
             .filter { it == R.id.delete }
@@ -1269,7 +1287,8 @@ class ComposeViewModel @Inject constructor(
 
         // Delete the message
         view.confirmDeleteIntent
-                .withLatestFrom(view.messagesSelectedIntent, conversation) { _, messages, conversation ->
+                // The selection stream emits nothing until a message is first selected
+                .withLatestFrom(view.messagesSelectedIntent.startWith(listOf<Long>()), conversation) { _, messages, conversation ->
                     deleteMessages.execute(DeleteMessages.Params(messages.toList(), conversation.id))
                 }
                 .autoDisposable(view.scope())

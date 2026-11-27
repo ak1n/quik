@@ -51,6 +51,7 @@ interface MainView : QkView<MainState> {
     fun toggleSelectAll()
     fun themeChanged()
     fun showBlockingDialog(conversations: List<Long>, block: Boolean)
+    fun showSpamCheck(conversations: List<Long>)
     fun showDeleteDialog(conversations: List<Long>)
     fun showRenameDialog(conversationName: String)
     fun showChangelog(changelog: ChangelogManager.CumulativeChangelog)

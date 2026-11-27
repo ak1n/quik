@@ -34,6 +34,7 @@ class ConversationInfoAdapter @Inject constructor(
     val markUnreadClicks: Subject<Unit> = PublishSubject.create()
     val archiveClicks: Subject<Unit> = PublishSubject.create()
     val blockClicks: Subject<Unit> = PublishSubject.create()
+    val checkSpamClicks: Subject<Unit> = PublishSubject.create()
     val deleteClicks: Subject<Unit> = PublishSubject.create()
     val mediaClicks: Subject<Long> = PublishSubject.create()
 
@@ -69,6 +70,7 @@ class ConversationInfoAdapter @Inject constructor(
                     binding.markUnread.clicks().subscribe(markUnreadClicks)
                     binding.archive.clicks().subscribe(archiveClicks)
                     binding.block.clicks().subscribe(blockClicks)
+                    binding.checkSpam.clicks().subscribe(checkSpamClicks)
                     binding.delete.clicks().subscribe(deleteClicks)
                 }
             }
@@ -121,6 +123,8 @@ class ConversationInfoAdapter @Inject constructor(
                     true -> R.string.info_unblock
                     false -> R.string.info_block
                 })
+
+                binding.checkSpam.isVisible = item.spamCheckAvailable && !item.blocked
             }
 
             is ConversationInfoMedia -> {
